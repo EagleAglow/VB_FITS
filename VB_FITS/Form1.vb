@@ -44,7 +44,7 @@
             Dim nAxes As Short = hdu.Axes.Count
             Dim aZero As UInt32 = hdu.Axes(0)
             Dim aOne As UInt32 = hdu.Axes(1)
-            Dim aTwo As UInt32 = hdu.Axes(2)
+            '            Dim aTwo As UInt32 = hdu.Axes(2)
             MsgBox("BITPIX: " & hdu.BitPix)
             '            MsgBox("Number of axes: " & nAxes)
             '            MsgBox("Axis 0 element count: " & aZero)
@@ -55,7 +55,7 @@
             myImageData = hdu.Data
 
             ' arbitrary terminology - may or may not match FITS concepts
-            Dim myImageArray() As Array  ' actually will be array of "layer" arrays of "row" arrays of "column" array of pixels
+            Dim myImageArray() As Array  ' for three axes, will be array of "layer" arrays of "row" arrays of "column" array of pixels
             Dim myLayer() As Array
             ' FITS data options...
             '   unsigned 8 bit integer (BITPIX=8) => Byte
@@ -71,12 +71,17 @@
 
             myImageArray = myImageData.Tiler.CompleteImage ' supposedly, can modify Tiler parameters to only pull part of myImageData
 
-            ' assumes zero based arrays
-            myLayerCount = 1 + myImageArray.GetUpperBound(0)
+            ' handle 2D and 3D data
+            If nAxes = 2 Then ' if two axes, copy myImageArray into myLayer
+                myLayer = myImageArray
+                myLayerCount = 1
+            Else
+                ' zero based arrays
+                myLayerCount = 1 + myImageArray.GetUpperBound(0)
+                myLayer = myImageArray(0) ' use first layer - future, maybe try selecting  and/or combining layers
+            End If
             MsgBox("Layers: " & myLayerCount)
 
-            ' use first layer - future, maybe try selecting  and/or combining layers
-            myLayer = myImageArray(0)
             myRowCount = 1 + myLayer.GetUpperBound(0)
             MsgBox("Rows: " & myRowCount)
             myColumnCount = 1 + myLayer(0).GetUpperBound(0)
@@ -94,9 +99,20 @@
             Dim myBitmap As New Bitmap(myRowCount, myColumnCount, myFormat)
             Dim myColor As Color
 
-            ' get highest/lowest value of aPixel
+            ' odd bug in 16 bit file, minimum was -32766, but image looked better (black background) when every pixel was multiplied by -1
+            'If hdu.BitPix = "16" Then ' fix
+            '    For myY = 0 To myRowCount - 1
+            '        For myX = 0 To myColumnCount - 1
+            '            myLayer(myY)(myX) = -1 * myLayer(myY)(myX)
+            '        Next
+            '    Next
+            'End If
+
+
+            ' get highest/lowest value of array elements, use double to handle any element type
             maxPixel = -1.0E+308
             minPixel = 1.0E+308
+
             For myY = 0 To myRowCount - 1
                 For myX = 0 To myColumnCount - 1
                     If CDbl(myLayer(myY)(myX)) > maxPixel Then
@@ -108,6 +124,7 @@
                 Next
             Next
             MsgBox("Pixel Min/Max: " & minPixel & " / " & maxPixel)
+
             ' scale values
             Dim temp As Int32
             For myY = 0 To myRowCount - 1
@@ -120,8 +137,9 @@
                     myBitmap.SetPixel(myX, myRowCount - 1 - myY, myColor)   ' invert vertical
                 Next
             Next
-            ImageBox1.Image = myBitmap
 
+
+            ImageBox1.Image = myBitmap
         End If
 
     End Sub

@@ -40,8 +40,6 @@ modification, are permitted provided that the following conditions are met:
 
 Uses NuGet package "CyotekImageBox" - See: https://github.com/cyotek/Cyotek.Windows.Forms.ImageBox
 =======================================================================================
-Also knowm as: CSharpFITS - See: https://github.com/sebgod/CSharpFITS
-=======================================================================================
 CyotekImageBox Copyright/License...
 
 The MIT License (MIT)
