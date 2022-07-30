@@ -96,7 +96,7 @@
             ' greyscale looks good, but ImageBox doesn't seem to like it, and SetPixel has no greyscale method. Instead...
             ' Pixel format is 24 bits per pixel; 8 bits each are used for the red, green, and blue components, no Alpha.
             myFormat = 137224  ' Format24bppRgb
-            Dim myBitmap As New Bitmap(myRowCount, myColumnCount, myFormat)
+            Dim myBitmap As New Bitmap(myColumnCount, myRowCount, myFormat)
             Dim myColor As Color
 
             ' odd bug in 16 bit file, minimum was -32766, but image looked better (black background) when every pixel was multiplied by -1
