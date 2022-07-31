@@ -45,7 +45,7 @@
             Dim aZero As UInt32 = hdu.Axes(0)
             Dim aOne As UInt32 = hdu.Axes(1)
             '            Dim aTwo As UInt32 = hdu.Axes(2)
-            MsgBox("BITPIX: " & hdu.BitPix)
+            '            MsgBox("BITPIX: " & hdu.BitPix)
             '            MsgBox("Number of axes: " & nAxes)
             '            MsgBox("Axis 0 element count: " & aZero)
             '            MsgBox("Axis 1 element count: " & aOne)
@@ -53,25 +53,33 @@
 
             Dim myImageData As New nom.tam.fits.ImageData
             myImageData = hdu.Data
+            Dim myImageHeader As New nom.tam.fits.Header
+            myImageHeader = hdu.Header
+            Dim cardCount As Integer = myImageHeader.NumberOfCards
+            '            MsgBox("Cards: " & cardCount)
+            Dim card As Integer
+            For card = 0 To cardCount - 1
+                ListBox1.Items.Add(myImageHeader.GetCard(card).ToString())
+            Next
 
             ' arbitrary terminology - may or may not match FITS concepts
             Dim myImageArray() As Array  ' for three axes, will be array of "layer" arrays of "row" arrays of "column" array of pixels
-            Dim myLayer() As Array
+            Dim myLayer() As Array   'First layer - For 2D data, interpret as greyscale; for 3D data of four layers, interpret As luminance (and ignore it)
             ' FITS data options...
             '   unsigned 8 bit integer (BITPIX=8) => Byte
-            '   16 bit signed integer (BITPIX=16) => Short
+            '   16 bit twos complement integer (BITPIX=16) => Short
             '   32 bit twos complement integer (BITPIX=32) => Integer
             '   32 bit IEEE floating point format (BITPIX=-32) => Single
             '   64 bit IEEE floating point format (BITPIX=-64) => Double
-            ' to handle that, just convert to double when processing
+            ' all are converted to double when processing
 
-            Dim myLayerCount As UInt16  ' not used here, maybe later
+            Dim myLayerCount As UInt16
             Dim myRowCount As UInt16
             Dim myColumnCount As UInt16
 
             myImageArray = myImageData.Tiler.CompleteImage ' supposedly, can modify Tiler parameters to only pull part of myImageData
 
-            ' handle 2D and 3D data
+            ' handle 2D and 3D data - not ready for 1D data or 4D+ data
             If nAxes = 2 Then ' if two axes, copy myImageArray into myLayer
                 myLayer = myImageArray
                 myLayerCount = 1
@@ -80,12 +88,12 @@
                 myLayerCount = 1 + myImageArray.GetUpperBound(0)
                 myLayer = myImageArray(0) ' use first layer - future, maybe try selecting  and/or combining layers
             End If
-            MsgBox("Layers: " & myLayerCount)
+            '            MsgBox("Layers: " & myLayerCount)
 
             myRowCount = 1 + myLayer.GetUpperBound(0)
-            MsgBox("Rows: " & myRowCount)
+            '            MsgBox("Rows: " & myRowCount)
             myColumnCount = 1 + myLayer(0).GetUpperBound(0)
-            MsgBox("Columns: " & myColumnCount)
+            '            MsgBox("Columns: " & myColumnCount)
 
             Dim bPixel As Byte    ' RGB color data
             Dim maxPixel As Double ' maximum value of aPixel, used to scale conversion from aPixel to bPixel
@@ -93,19 +101,37 @@
 
             Dim myFormat As System.Drawing.Imaging.PixelFormat
             ' see: https://docs.microsoft.com/en-us/dotnet/api/system.drawing.imaging.pixelformat?view=netframework-4.7.2
-            ' greyscale looks good, but ImageBox doesn't seem to like it, and SetPixel has no greyscale method. Instead...
             ' Pixel format is 24 bits per pixel; 8 bits each are used for the red, green, and blue components, no Alpha.
             myFormat = 137224  ' Format24bppRgb
             Dim myBitmap As New Bitmap(myColumnCount, myRowCount, myFormat)
             Dim myColor As Color
 
-            ' odd bug in 16 bit file, minimum was -32766, but image looked better (black background) when every pixel was multiplied by -1
-            'If hdu.BitPix = "16" Then ' fix
+            ' from: https://docs.astropy.org/en/stable/io/fits/
+            ' Unsigned integers - Due to the FITS format's Fortran origins, FITS does not natively support unsigned integer data
+            ' in images or tables.  However, there is a common convention to store unsigned integers as signed integers, along
+            ' with a shift instruction (a BZERO keyword with value 2 ** (BITPIX - 1)) to shift up all signed integers to unsigned
+            ' integers. For example, when writing the value 0 as an unsigned 32-bit integer, it is stored in the FITS file as -32768,
+            ' along with the header keyword BZERO = 32768.
+
+
+
+
+            ' odd bug in 16 bit file (w0bw0103t_c0h.fit), minimum was -32766, but image looked better (had black background) when
+            ' every pixel was multiplied by -1.  So, try fixing two's complement???
+            ' need another sample file - I think this one is bad (or I just don't understand...)
+
+            'If hdu.BZero = "32768" Then ' note - should use different value for 32bit!
+            'If ((hdu.BitPix = "16") Or (hdu.BitPix = "32")) Then ' fix
             '    For myY = 0 To myRowCount - 1
             '        For myX = 0 To myColumnCount - 1
-            '            myLayer(myY)(myX) = -1 * myLayer(myY)(myX)
+            '            If myLayer(myY)(myX) < 0 Then
+            '                myLayer(myY)(myX) = (myLayer(myY)(myX) + 32768)
+            '            Else
+            '                myLayer(myY)(myX) = (myLayer(myY)(myX))
+            '            End If
             '        Next
             '    Next
+            'End If
             'End If
 
 
@@ -123,24 +149,24 @@
                     End If
                 Next
             Next
-            MsgBox("Pixel Min/Max: " & minPixel & " / " & maxPixel)
+            '            MsgBox("Pixel Min/Max: " & minPixel & " / " & maxPixel)
 
             ' scale values
             Dim temp As Int32
-            For myY = 0 To myRowCount - 1
-                For myX = 0 To myColumnCount - 1
-                    temp = CInt(255.0 * (myLayer(myY)(myX) - minPixel) / (maxPixel - minPixel))
-                    If temp > 255 Then temp = 255  ' just in case...
-                    If temp < 0 Then temp = 0  ' just in case...
-                    bPixel = CByte(temp)
-                    myColor = Color.FromArgb(255, bPixel, bPixel, bPixel)
-                    myBitmap.SetPixel(myX, myRowCount - 1 - myY, myColor)   ' invert vertical
+                For myY = 0 To myRowCount - 1
+                    For myX = 0 To myColumnCount - 1
+                        temp = CInt(255.0 * (myLayer(myY)(myX) - minPixel) / (maxPixel - minPixel))
+                        If temp > 255 Then temp = 255  ' just in case...
+                        If temp < 0 Then temp = 0  ' just in case...
+                        bPixel = CByte(temp)
+                        myColor = Color.FromArgb(255, bPixel, bPixel, bPixel)
+                        myBitmap.SetPixel(myX, myRowCount - 1 - myY, myColor)   ' invert vertical
+                    Next
                 Next
-            Next
 
 
-            ImageBox1.Image = myBitmap
-        End If
+                ImageBox1.Image = myBitmap
+            End If
 
     End Sub
 End Class
