@@ -1,5 +1,6 @@
 ﻿Imports System.Configuration
 Imports System.Diagnostics.Eventing.Reader
+Imports System.Security.Permissions
 Imports System.Windows.Forms.VisualStyles.VisualStyleElement
 Imports Cyotek.Windows.Forms
 Imports Microsoft.VisualBasic.Devices
@@ -48,6 +49,7 @@ Module Engine
     ' load file, parse content
     Sub OpenFITS(strFileName As String)
         Dim msg As String
+
         fileIO = New nom.tam.util.BufferedFile(strFileName, IO.FileAccess.ReadWrite, IO.FileShare.ReadWrite)
         fileFITS = New nom.tam.fits.Fits(fileIO)
         ' see how many hdus we can read

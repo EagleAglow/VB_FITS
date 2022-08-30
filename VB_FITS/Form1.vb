@@ -15,6 +15,28 @@
 
 
         If OpenFileDialog1.ShowDialog = DialogResult.OK Then
+
+
+            ' cleanup, in case a file was open
+            fileIO = Nothing
+            fileFITS = Nothing
+            fileIO = Nothing
+            fileFITS = Nothing
+            ImageBox1.Image = Nothing
+            ListBoxHDUs.Items.Clear()
+            ListBoxLayers.Items.Clear()
+            ListBoxCards.Items.Clear()
+            TextBox1.Text = "Wait..."
+            TextBox1.Update()
+            TextBox3.Clear()
+            TextBox4.Clear()
+            TextBox5.Clear()
+
+
+
+
+
+
             fileNameFITS = OpenFileDialog1.FileName
             TextBox1.Text = fileNameFITS
 

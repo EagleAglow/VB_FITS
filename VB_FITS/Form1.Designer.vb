@@ -62,7 +62,7 @@ Partial Class Form1
         Me.Panel1.Location = New System.Drawing.Point(0, 0)
         Me.Panel1.Margin = New System.Windows.Forms.Padding(0)
         Me.Panel1.Name = "Panel1"
-        Me.Panel1.Size = New System.Drawing.Size(580, 180)
+        Me.Panel1.Size = New System.Drawing.Size(580, 175)
         Me.Panel1.TabIndex = 3
         '
         'btnSaveFile
@@ -78,11 +78,11 @@ Partial Class Form1
         '
         'TextBox4
         '
-        Me.TextBox4.Font = New System.Drawing.Font("Courier New", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBox4.Font = New System.Drawing.Font("Courier New", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.TextBox4.Location = New System.Drawing.Point(111, 120)
         Me.TextBox4.Margin = New System.Windows.Forms.Padding(0)
         Me.TextBox4.Name = "TextBox4"
-        Me.TextBox4.Size = New System.Drawing.Size(237, 22)
+        Me.TextBox4.Size = New System.Drawing.Size(237, 21)
         Me.TextBox4.TabIndex = 13
         '
         'btnSaveEdit
@@ -98,7 +98,7 @@ Partial Class Form1
         '
         'TextBox5
         '
-        Me.TextBox5.Font = New System.Drawing.Font("Courier New", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBox5.Font = New System.Drawing.Font("Courier New", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.TextBox5.Location = New System.Drawing.Point(9, 147)
         Me.TextBox5.Margin = New System.Windows.Forms.Padding(0)
         Me.TextBox5.Multiline = True
@@ -108,43 +108,44 @@ Partial Class Form1
         '
         'TextBox3
         '
-        Me.TextBox3.Font = New System.Drawing.Font("Courier New", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBox3.Font = New System.Drawing.Font("Courier New", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.TextBox3.Location = New System.Drawing.Point(9, 120)
         Me.TextBox3.Margin = New System.Windows.Forms.Padding(0)
         Me.TextBox3.Name = "TextBox3"
-        Me.TextBox3.Size = New System.Drawing.Size(89, 22)
+        Me.TextBox3.Size = New System.Drawing.Size(89, 21)
         Me.TextBox3.TabIndex = 9
         '
         'ListBoxLayers
         '
-        Me.ListBoxLayers.Font = New System.Drawing.Font("Courier New", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.ListBoxLayers.Font = New System.Drawing.Font("Courier New", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ListBoxLayers.FormattingEnabled = True
-        Me.ListBoxLayers.ItemHeight = 16
+        Me.ListBoxLayers.ItemHeight = 15
         Me.ListBoxLayers.Location = New System.Drawing.Point(479, 63)
         Me.ListBoxLayers.Margin = New System.Windows.Forms.Padding(0)
         Me.ListBoxLayers.Name = "ListBoxLayers"
         Me.ListBoxLayers.ScrollAlwaysVisible = True
-        Me.ListBoxLayers.Size = New System.Drawing.Size(90, 52)
+        Me.ListBoxLayers.Size = New System.Drawing.Size(90, 49)
         Me.ListBoxLayers.TabIndex = 7
         '
         'TextBox1
         '
-        Me.TextBox1.Font = New System.Drawing.Font("Courier New", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBox1.Font = New System.Drawing.Font("Courier New", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.TextBox1.Location = New System.Drawing.Point(9, 37)
         Me.TextBox1.Name = "TextBox1"
-        Me.TextBox1.Size = New System.Drawing.Size(560, 22)
+        Me.TextBox1.Size = New System.Drawing.Size(560, 21)
         Me.TextBox1.TabIndex = 6
+        Me.TextBox1.Text = "Files may take 10 - 20 seconds to load..."
         '
         'ListBoxHDUs
         '
-        Me.ListBoxHDUs.Font = New System.Drawing.Font("Courier New", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.ListBoxHDUs.Font = New System.Drawing.Font("Courier New", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ListBoxHDUs.FormattingEnabled = True
-        Me.ListBoxHDUs.ItemHeight = 16
+        Me.ListBoxHDUs.ItemHeight = 15
         Me.ListBoxHDUs.Location = New System.Drawing.Point(9, 63)
         Me.ListBoxHDUs.Margin = New System.Windows.Forms.Padding(0)
         Me.ListBoxHDUs.Name = "ListBoxHDUs"
         Me.ListBoxHDUs.ScrollAlwaysVisible = True
-        Me.ListBoxHDUs.Size = New System.Drawing.Size(463, 52)
+        Me.ListBoxHDUs.Size = New System.Drawing.Size(463, 49)
         Me.ListBoxHDUs.TabIndex = 5
         '
         'btnLoadFile
@@ -182,17 +183,19 @@ Partial Class Form1
         '
         'ListBoxCards
         '
-        Me.ListBoxCards.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+        Me.ListBoxCards.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
+            Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.ListBoxCards.BackColor = System.Drawing.SystemColors.HighlightText
         Me.ListBoxCards.BorderStyle = System.Windows.Forms.BorderStyle.None
-        Me.ListBoxCards.Font = New System.Drawing.Font("Courier New", 9.75!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.ListBoxCards.Font = New System.Drawing.Font("Courier New", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ListBoxCards.FormattingEnabled = True
-        Me.ListBoxCards.ItemHeight = 16
+        Me.ListBoxCards.HorizontalScrollbar = True
+        Me.ListBoxCards.ItemHeight = 15
         Me.ListBoxCards.Location = New System.Drawing.Point(0, 0)
         Me.ListBoxCards.Margin = New System.Windows.Forms.Padding(0)
         Me.ListBoxCards.Name = "ListBoxCards"
-        Me.ListBoxCards.Size = New System.Drawing.Size(260, 336)
+        Me.ListBoxCards.Size = New System.Drawing.Size(260, 330)
         Me.ListBoxCards.TabIndex = 12
         '
         'ImageBox1
