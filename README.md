@@ -4,7 +4,7 @@ A Visual Basic (in Visual Studio 2022) programming exercise, for a viewer for FI
 
 ![ScreenShot](/Form.png)
 
-This is a work in (occasional) progress, with limited testing so far. Some potential problems are flagged below, but there certain to be more.
+This is a work in (occasional) progress, with limited testing. Some potential problems are flagged below, but there certain to be more.
 
 To view a FITS file, click the "Open File" button, and wait...  Some files are quite complex, and will take some tens of seconds to process.
 
@@ -24,3 +24,6 @@ At the moment, there is no provision for deleting a card.
 
 Note that changing some keys will break the FITS format.  Also, more complicated files seem to have non-standard cards.  Use this feature
 with caution!
+
+With VS2022, the steps to get from GIT would be: "Clone a repository", "Browse a repository", and for "Open from GitHUb",
+put in: EagleAglow/VB_FITS, then "Clone". Open: VB_FITS.sln and then build it...
