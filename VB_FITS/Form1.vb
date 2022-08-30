@@ -1,172 +1,143 @@
 ﻿Public Class Form1
-    Private Sub btnCreateImage_Click(sender As Object, e As EventArgs) Handles btnCreateImage.Click
-        Dim myWidth As Int32 = 400
-        Dim myHeight As Int32 = 300
-        Dim myX As Int32
-        Dim myY As Int32
-        Dim myFormat As System.Drawing.Imaging.PixelFormat
-        ' see: https://docs.microsoft.com/en-us/dotnet/api/system.drawing.imaging.pixelformat?view=netframework-4.7.2
-        ' greyscale looks good, but ImageBox doesn't seem to like it, and SetPixel fails... so, try this...
-        ' Pixel format is 24 bits per pixel; 8 bits each are used for the red, green, and blue components, no Alpha.
-        myFormat = 137224  ' Format24bppRgb
-        Dim myBitmap As New Bitmap(myWidth, myHeight, myFormat)
-        Dim myColor As Color
-        For myX = 0 To myWidth - 1
-            For myY = 0 To myHeight - 1
-                If myX = myY Then
-                    myColor = Color.FromArgb(30, 30, 30)
-                    myBitmap.SetPixel(myX, myY, myColor)
-                End If
-                If myX = myY + 1 Then
-                    myColor = Color.FromArgb(230, 230, 230)
-                    myBitmap.SetPixel(myX, myY, myColor)
-                End If
-                If myX = myY + 2 Then
-                    myColor = Color.Red
-                    myBitmap.SetPixel(myX, myY, myColor)
-                End If
-            Next
-        Next
-        ImageBox1.Image = myBitmap
-    End Sub
+    Dim myX As Int32
+    Dim myY As Int32
+    Dim myZ As Int32
+
+
+
 
     Private Sub btnLoadFile_Click(sender As Object, e As EventArgs) Handles btnLoadFile.Click
 
         ' see: https://github.com/nom-tam-fits/nom-tam-fits#reading-fits-files
 
         '   sample file:      w0bw0103t_c0h.fit
+        ' G:\DownLoadsTemporary\FITS_Samples\w0bw0103t_c0h.fit
+
 
         If OpenFileDialog1.ShowDialog = DialogResult.OK Then
-            Dim f As New nom.tam.fits.Fits(OpenFileDialog1.FileName)
-            'MsgBox("Number of HDUs: " & f.NumberOfHDUs)  ' zero based???? test file with one HDU returns zero ??
+            fileNameFITS = OpenFileDialog1.FileName
+            TextBox1.Text = fileNameFITS
 
-            Dim hdu As nom.tam.fits.ImageHDU = f.GetHDU(0)  ' get first HDU
-            Dim nAxes As Short = hdu.Axes.Count
-            Dim aZero As UInt32 = hdu.Axes(0)
-            Dim aOne As UInt32 = hdu.Axes(1)
-            '            Dim aTwo As UInt32 = hdu.Axes(2)
-            '            MsgBox("BITPIX: " & hdu.BitPix)
-            '            MsgBox("Number of axes: " & nAxes)
-            '            MsgBox("Axis 0 element count: " & aZero)
-            '            MsgBox("Axis 1 element count: " & aOne)
-            '            MsgBox("Axis 2 element count: " & aTwo)
+            Call OpenFITS(fileNameFITS)
 
-            Dim myImageData As New nom.tam.fits.ImageData
-            myImageData = hdu.Data
-            Dim myImageHeader As New nom.tam.fits.Header
-            myImageHeader = hdu.Header
-            Dim cardCount As Integer = myImageHeader.NumberOfCards
-            '            MsgBox("Cards: " & cardCount)
-            Dim card As Integer
-            For card = 0 To cardCount - 1
-                ListBox1.Items.Add(myImageHeader.GetCard(card).ToString())
-            Next
+            If hduCount > 0 Then              ' select first hdu, get cards, if any
+                ListBoxHDUs.SelectedIndex = 0
+                '                Call ReadCards(0)
+                Call ReadCards(0)
+                If hduLayerCount(0) > 0 Then               ' get the image
+                    ListBoxLayers.SelectedIndex = 0
 
-            ' arbitrary terminology - may or may not match FITS concepts
-            Dim myImageArray() As Array  ' for three axes, will be array of "layer" arrays of "row" arrays of "column" array of pixels
-            Dim myLayer() As Array   'First layer - For 2D data, interpret as greyscale; for 3D data of four layers, interpret As luminance (and ignore it)
-            ' FITS data options...
-            '   unsigned 8 bit integer (BITPIX=8) => Byte
-            '   16 bit twos complement integer (BITPIX=16) => Short
-            '   32 bit twos complement integer (BITPIX=32) => Integer
-            '   32 bit IEEE floating point format (BITPIX=-32) => Single
-            '   64 bit IEEE floating point format (BITPIX=-64) => Double
-            ' all are converted to double when processing
+                    Call ReadImage(0, 0)            ' first hdu, first layer
 
-            Dim myLayerCount As UInt16
-            Dim myRowCount As UInt16
-            Dim myColumnCount As UInt16
 
-            myImageArray = myImageData.Tiler.CompleteImage ' supposedly, can modify Tiler parameters to only pull part of myImageData
-
-            ' handle 2D and 3D data - not ready for 1D data or 4D+ data
-            If nAxes = 2 Then ' if two axes, copy myImageArray into myLayer
-                myLayer = myImageArray
-                myLayerCount = 1
-            Else
-                ' zero based arrays
-                myLayerCount = 1 + myImageArray.GetUpperBound(0)
-                myLayer = myImageArray(0) ' use first layer - future, maybe try selecting  and/or combining layers
+                End If
             End If
-            '            MsgBox("Layers: " & myLayerCount)
-
-            myRowCount = 1 + myLayer.GetUpperBound(0)
-            '            MsgBox("Rows: " & myRowCount)
-            myColumnCount = 1 + myLayer(0).GetUpperBound(0)
-            '            MsgBox("Columns: " & myColumnCount)
-
-            Dim bPixel As Byte    ' RGB color data
-            Dim maxPixel As Double ' maximum value of aPixel, used to scale conversion from aPixel to bPixel
-            Dim minPixel As Double ' minimum value of aPixel, used to scale conversion from aPixel to bPixel
-
-            Dim myFormat As System.Drawing.Imaging.PixelFormat
-            ' see: https://docs.microsoft.com/en-us/dotnet/api/system.drawing.imaging.pixelformat?view=netframework-4.7.2
-            ' Pixel format is 24 bits per pixel; 8 bits each are used for the red, green, and blue components, no Alpha.
-            myFormat = 137224  ' Format24bppRgb
-            Dim myBitmap As New Bitmap(myColumnCount, myRowCount, myFormat)
-            Dim myColor As Color
-
-            ' from: https://docs.astropy.org/en/stable/io/fits/
-            ' Unsigned integers - Due to the FITS format's Fortran origins, FITS does not natively support unsigned integer data
-            ' in images or tables.  However, there is a common convention to store unsigned integers as signed integers, along
-            ' with a shift instruction (a BZERO keyword with value 2 ** (BITPIX - 1)) to shift up all signed integers to unsigned
-            ' integers. For example, when writing the value 0 as an unsigned 32-bit integer, it is stored in the FITS file as -32768,
-            ' along with the header keyword BZERO = 32768.
 
 
+        End If
 
 
-            ' odd bug in 16 bit file (w0bw0103t_c0h.fit), minimum was -32766, but image looked better (had black background) when
-            ' every pixel was multiplied by -1.  So, try fixing two's complement???
-            ' need another sample file - I think this one is bad (or I just don't understand...)
-
-            'If hdu.BZero = "32768" Then ' note - should use different value for 32bit!
-            'If ((hdu.BitPix = "16") Or (hdu.BitPix = "32")) Then ' fix
-            '    For myY = 0 To myRowCount - 1
-            '        For myX = 0 To myColumnCount - 1
-            '            If myLayer(myY)(myX) < 0 Then
-            '                myLayer(myY)(myX) = (myLayer(myY)(myX) + 32768)
-            '            Else
-            '                myLayer(myY)(myX) = (myLayer(myY)(myX))
-            '            End If
-            '        Next
-            '    Next
-            'End If
-            'End If
-
-
-            ' get highest/lowest value of array elements, use double to handle any element type
-            maxPixel = -1.0E+308
-            minPixel = 1.0E+308
-
-            For myY = 0 To myRowCount - 1
-                For myX = 0 To myColumnCount - 1
-                    If CDbl(myLayer(myY)(myX)) > maxPixel Then
-                        maxPixel = CDbl(myLayer(myY)(myX))
-                    End If
-                    If CDbl(myLayer(myY)(myX)) < minPixel Then
-                        minPixel = CDbl(myLayer(myY)(myX))
-                    End If
-                Next
-            Next
-            '            MsgBox("Pixel Min/Max: " & minPixel & " / " & maxPixel)
-
-            ' scale values
-            Dim temp As Int32
-                For myY = 0 To myRowCount - 1
-                    For myX = 0 To myColumnCount - 1
-                        temp = CInt(255.0 * (myLayer(myY)(myX) - minPixel) / (maxPixel - minPixel))
-                        If temp > 255 Then temp = 255  ' just in case...
-                        If temp < 0 Then temp = 0  ' just in case...
-                        bPixel = CByte(temp)
-                        myColor = Color.FromArgb(255, bPixel, bPixel, bPixel)
-                        myBitmap.SetPixel(myX, myRowCount - 1 - myY, myColor)   ' invert vertical
-                    Next
-                Next
-
-
-                ImageBox1.Image = myBitmap
-            End If
 
     End Sub
+
+    Private Sub ListBoxCards_Click(sender As Object, e As EventArgs) Handles ListBoxCards.Click
+        Dim whichCard As Integer
+        Dim whichHDU As Integer
+        If ListBoxCards.SelectedIndex > -1 Then
+            If ListBoxHDUs.SelectedIndex > -1 Then
+                whichHDU = ListBoxHDUs.SelectedIndex
+                whichCard = ListBoxCards.SelectedIndex
+                ReadCard(whichHDU, whichCard)
+
+                ListBoxLayers.Items.Clear()
+                If hduLayerCount(ListBoxHDUs.SelectedIndex) > 0 Then
+                    Dim i As Integer
+                    For i = 0 To hduLayerCount(ListBoxHDUs.SelectedIndex) - 1
+                        ListBoxLayers.Items.Add(Str(i))
+                    Next
+                    ListBoxLayers.SelectedIndex = 0
+                End If
+            End If
+        End If
+
+    End Sub
+
+    Private Sub btnSaveEdit_Click(sender As Object, e As EventArgs) Handles btnSaveEdit.Click
+        '
+        Dim whichHDU As Integer
+        Dim myCardText As String
+        Dim strKey As String
+        Dim strValue As String
+        Dim strComment As String
+
+        If ListBoxHDUs.SelectedIndex > -1 Then
+            whichHDU = ListBoxHDUs.SelectedIndex
+            strKey = UCase(Trim(TextBox3.Text))
+            strValue = Trim(TextBox4.Text)
+            strComment = Trim(TextBox5.Text)
+            If strKey = "" Then   ' no key, not going to check for value
+                If strComment = "" Then ' no key, no comment
+                    ' do nothing
+                Else  ' try to add/store string with / at character 32
+                    myCardText = Space(31) & "/ " & strComment
+                    Call WriteCard(whichHDU, myCardText)    ' OK
+                End If
+            Else ' key exists, check for value
+                If strValue = "" Then  ' no value, maybe HISTORY or COMMENT?
+                    If strKey = "HISTORY" Or strKey = "COMMENT" Then
+                        myCardText = strKey & " " & strComment
+                        Call WriteCard(whichHDU, myCardText)   ' OK
+                    Else ' key, no value
+                        ' do nothing
+                    End If
+                Else   ' we have key and value, what about comment?
+                    If strComment = "" Then ' key, value, no comment
+                        myCardText = Microsoft.VisualBasic.Left(Microsoft.VisualBasic.Left(strKey, 8) & "        ", 8) & "= " & Trim(strValue)
+                        Call WriteCard(whichHDU, myCardText)     ' OK
+                    Else  ' we have key, value and comment
+                        myCardText = Microsoft.VisualBasic.Left(Microsoft.VisualBasic.Left(strKey, 8) & "        ", 8) & "= " & Microsoft.VisualBasic.Left(Trim(strValue), 22)
+                        myCardText = Microsoft.VisualBasic.Left(myCardText & "/ " & strComment, 80)
+                        Call WriteCard(whichHDU, myCardText)   ' OK
+                    End If
+                End If
+            End If
+        End If
+
+    End Sub
+
+    Private Sub btnSaveFile_Click(sender As Object, e As EventArgs) Handles btnSaveFile.Click
+        '
+        Call SaveFITS()
+
+    End Sub
+
+    Private Sub ListBoxHDUs_Click(sender As Object, e As EventArgs) Handles ListBoxHDUs.Click
+        If ListBoxHDUs.SelectedIndex > -1 Then
+
+            ReadCards(ListBoxHDUs.SelectedIndex)
+
+            Dim i As Integer
+
+            ListBoxLayers.Items.Clear()
+            ImageBox1.Image = Nothing
+            If hduLayerCount(ListBoxHDUs.SelectedIndex) > 0 Then
+                For i = 0 To hduLayerCount(ListBoxHDUs.SelectedIndex) - 1
+                    ListBoxLayers.Items.Add(Str(i))
+                Next
+                ListBoxLayers.SelectedIndex = 0
+                ReadImage(ListBoxHDUs.SelectedIndex, 0)
+
+            End If
+        End If
+    End Sub
+
+    Private Sub ListBoxLayers_Click(sender As Object, e As EventArgs) Handles ListBoxLayers.Click
+        If ListBoxLayers.SelectedIndex > -1 Then
+            If ListBoxHDUs.SelectedIndex > -1 Then
+                ReadImage(ListBoxHDUs.SelectedIndex, ListBoxLayers.SelectedIndex)
+            End If
+        End If
+
+    End Sub
+
 End Class
